@@ -216,6 +216,10 @@ class IOController {
         return this._loader.type;
     }
 
+    /**
+     * 根据seekType设置seekHandler
+     * 设置url 或 添加 Range 属性
+     */
     _selectSeekHandler() {
         let config = this._config;
 
@@ -236,14 +240,21 @@ class IOController {
         }
     }
 
+    /**
+     * 选择一个load flv的方式
+     */
     _selectLoader() {
         if (this._isWebSocketURL) {
+            // WebSocket
             this._loaderClass = WebSocketLoader;
         } else if (FetchStreamLoader.isSupported()) {
+            // fetch
             this._loaderClass = FetchStreamLoader;
         } else if (MozChunkedLoader.isSupported()) {
+            // xhr
             this._loaderClass = MozChunkedLoader;
         } else if (RangeLoader.isSupported()) {
+            // xhr
             this._loaderClass = RangeLoader;
         } else {
             throw new RuntimeException('Your browser doesn\'t support xhr with arraybuffer responseType!');
@@ -251,6 +262,9 @@ class IOController {
     }
 
     _createLoader() {
+        /**
+         * 这里如果是 WebSocket 的方式 seekhandler 可以不需要，因为靠 server 推过来就好了，推过来什么就播放什么
+         */
         this._loader = new this._loaderClass(this._seekHandler, this._config);
         if (this._loader.needStashBuffer === false) {
             this._enableStash = false;

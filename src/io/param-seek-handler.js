@@ -19,13 +19,24 @@
 class ParamSeekHandler {
 
     constructor(paramStart, paramEnd) {
+        /**
+         * config 默认
+         * startName: bstart
+         * endName: bend
+         * b => bilibili ?
+         */
         this._startName = paramStart;
         this._endName = paramEnd;
     }
 
     getConfig(baseUrl, range) {
         let url = baseUrl;
-
+        /**
+         * 给url拼上一个范围参数
+         * xxxx.xx?{startName}=1&{endName}=9
+         * startName 要不等于 0
+         * endName 要不等于 -1
+         */
         if (range.from !== 0 || range.to !== -1) {
             let needAnd = true;
             if (url.indexOf('?') === -1) {
@@ -51,6 +62,10 @@ class ParamSeekHandler {
     }
 
     removeURLParameters(seekedURL) {
+        /**
+         * 把url中的startName和endName干掉
+         * 与上面的相反
+         */
         let baseURL = seekedURL.split('?')[0];
         let params = undefined;
 

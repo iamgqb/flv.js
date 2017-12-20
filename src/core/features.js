@@ -22,6 +22,14 @@ import {createDefaultConfig} from '../config.js';
 class Features {
 
     static supportMSEH264Playback() {
+        /**
+         * 判断是否支持格式
+         * isTypeSupported 会返回一个boolean
+         * http://www.leanbackplayer.com/test/h5mt.html
+         * https://tools.ietf.org/html/rfc6381#section-3.3
+         * https://wiki.whatwg.org/wiki/video_type_parameters#MPEG
+         * 为什么是这个 codecs
+         */
         return window.MediaSource &&
                window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
     }
@@ -41,6 +49,9 @@ class Features {
     }
 
     static supportNativeMediaPlayback(mimeType) {
+        /**
+         * 判断UA对各种格式的可播放情况
+         */
         if (Features.videoElement == undefined) {
             Features.videoElement = window.document.createElement('video');
         }

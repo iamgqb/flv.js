@@ -24,7 +24,14 @@ class RangeSeekHandler {
 
     getConfig(url, range) {
         let headers = {};
-
+        /**
+         * 在headers中增加范围参数 Range 形如:
+         * bytes=1-9
+         * 如果end === -1
+         * bytes=1-
+         * 如果从0开始
+         * bytes=0-
+         */
         if (range.from !== 0 || range.to !== -1) {
             let param;
             if (range.to !== -1) {
