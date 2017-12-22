@@ -35,6 +35,9 @@ class Features {
     }
 
     static supportNetworkStreamIO() {
+        /**
+         * 判断是否支持 stream 
+         */
         let ioctl = new IOController({}, createDefaultConfig());
         let loaderType = ioctl.loaderType;
         ioctl.destroy();
@@ -42,6 +45,9 @@ class Features {
     }
 
     static getNetworkLoaderTypeName() {
+        /**
+         * 返回 loader 类型
+         */
         let ioctl = new IOController({}, createDefaultConfig());
         let loaderType = ioctl.loaderType;
         ioctl.destroy();

@@ -45,7 +45,7 @@ class NativePlayer {
             onvLoadedMetadata: this._onvLoadedMetadata.bind(this)
         };
 
-        this._pendingSeekTime = null;
+        this._pendingSeekTime = null; // 预计跳帧
         this._statisticsReporter = null;
 
         this._mediaDataSource = mediaDataSource;
@@ -64,6 +64,9 @@ class NativePlayer {
     }
 
     on(event, listener) {
+        /**
+         * 特殊拦截了两个事件
+         */
         if (event === PlayerEvents.MEDIA_INFO) {
             if (this._mediaElement != null && this._mediaElement.readyState !== 0) {  // HAVE_NOTHING
                 Promise.resolve().then(() => {
@@ -86,6 +89,9 @@ class NativePlayer {
 
     attachMediaElement(mediaElement) {
         this._mediaElement = mediaElement;
+        /**
+         * when load meta data
+         */
         mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata);
 
         if (this._pendingSeekTime != null) {
@@ -116,8 +122,15 @@ class NativePlayer {
         if (!this._mediaElement) {
             throw new IllegalStateException('HTMLMediaElement must be attached before load()!');
         }
+        /**
+         * 设置video的src // native player
+         */
         this._mediaElement.src = this._mediaDataSource.url;
 
+        /**
+         * The HTMLMediaElement.readyState property indicates the readiness state of the media.
+         * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/readyState
+         */
         if (this._mediaElement.readyState > 0) {
             this._mediaElement.currentTime = 0;
         }
@@ -125,6 +138,9 @@ class NativePlayer {
         this._mediaElement.preload = 'auto';
         this._mediaElement.load();
         this._statisticsReporter = window.setInterval(
+            /**
+             * 定时信息统计
+             */
             this._reportStatisticsInfo.bind(this),
         this._config.statisticsInfoReportInterval);
     }
@@ -192,13 +208,22 @@ class NativePlayer {
     }
 
     get mediaInfo() {
+        /**
+         * 返回一个mediaInfo对象, 包含
+         * mimeTpye: 音频或视频 + 播放类型
+         * duration: 资源时长
+         * width, height: 如果是视频则包含 宽高
+         */
         let mediaPrefix = (this._mediaElement instanceof HTMLAudioElement) ? 'audio/' : 'video/';
         let info = {
             mimeType: mediaPrefix + this._mediaDataSource.type
         };
         if (this._mediaElement) {
+            // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration
+            // 时长
             info.duration = Math.floor(this._mediaElement.duration * 1000);
             if (this._mediaElement instanceof HTMLVideoElement) {
+                // 如果是视频 再拿宽高
                 info.width = this._mediaElement.videoWidth;
                 info.height = this._mediaElement.videoHeight;
             }
@@ -207,6 +232,14 @@ class NativePlayer {
     }
 
     get statisticsInfo() {
+        /**
+         * 生成一个播放对象
+         * 播放类型(NativePlayer)
+         * 播放的url
+         * 播放质量
+         *  - 总帧
+         *  - 丢帧
+         */
         let info = {
             playerType: this._type,
             url: this._mediaDataSource.url
@@ -221,9 +254,14 @@ class NativePlayer {
         let dropped = 0;
 
         if (this._mediaElement.getVideoPlaybackQuality) {
+            /**
+             * getVideoPlaybackQuality 会返回一个当前播放质量的对象
+             * https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/getVideoPlaybackQuality
+             * https://developer.mozilla.org/en-US/docs/Web/API/VideoPlaybackQuality
+             */
             let quality = this._mediaElement.getVideoPlaybackQuality();
-            decoded = quality.totalVideoFrames;
-            dropped = quality.droppedVideoFrames;
+            decoded = quality.totalVideoFrames; // 总帧 = 创建的 + 丢弃的
+            dropped = quality.droppedVideoFrames; // 被丢弃的帧
         } else if (this._mediaElement.webkitDecodedFrameCount != undefined) {
             decoded = this._mediaElement.webkitDecodedFrameCount;
             dropped = this._mediaElement.webkitDroppedFrameCount;
@@ -244,10 +282,16 @@ class NativePlayer {
             this._mediaElement.currentTime = this._pendingSeekTime;
             this._pendingSeekTime = null;
         }
+        /**
+         * 广播一个 media_info 事件，包含信息 this.mediaInfo
+         */
         this._emitter.emit(PlayerEvents.MEDIA_INFO, this.mediaInfo);
     }
 
     _reportStatisticsInfo() {
+        /**
+         * 广播一个 statistics_info 事件，包含信息 this.statisticsInfo
+         */
         this._emitter.emit(PlayerEvents.STATISTICS_INFO, this.statisticsInfo);
     }
 

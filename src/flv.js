@@ -53,10 +53,16 @@ function createPlayer(mediaDataSource, optionalConfig) {
 
 // feature detection
 function isSupported() {
+    /**
+     * 是否支持 MSE
+     */
     return Features.supportMSEH264Playback();
 }
 
 function getFeatureList() {
+    /**
+     * 支持列表
+     */
     return Features.getFeatureList();
 }
 
@@ -73,7 +79,7 @@ flvjs.ErrorTypes = ErrorTypes;
 flvjs.ErrorDetails = ErrorDetails;
 
 flvjs.FlvPlayer = FlvPlayer;
-flvjs.NativePlayer = NativePlayer;
+flvjs.NativePlayer = NativePlayer; // NativePlayer相对简单，仅仅处理了一些播放质量的统计与基础信息的统计
 flvjs.LoggingControl = LoggingControl;
 
 Object.defineProperty(flvjs, 'version', {

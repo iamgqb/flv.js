@@ -101,6 +101,9 @@ class WebSocketLoader extends BaseLoader {
     }
 
     _onWebSocketMessage(e) {
+        /**
+         * 受到的数据需要是 ArrayBuffer 或者 Blob
+         */
         if (e.data instanceof ArrayBuffer) {
             this._dispatchArrayBuffer(e.data);
         } else if (e.data instanceof Blob) {
@@ -122,11 +125,17 @@ class WebSocketLoader extends BaseLoader {
     }
 
     _dispatchArrayBuffer(arraybuffer) {
+        /**
+         * 记录收到数据的长度
+         */
         let chunk = arraybuffer;
         let byteStart = this._receivedLength;
         this._receivedLength += chunk.byteLength;
 
         if (this._onDataArrival) {
+            /**
+             * 收到数据块， 数据偏移长度， 已经收到的所有数据的长度
+             */
             this._onDataArrival(chunk, byteStart, this._receivedLength);
         }
     }
