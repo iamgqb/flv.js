@@ -46,6 +46,8 @@ function createPlayer(mediaDataSource, optionalConfig) {
         case 'flv':
             return new FlvPlayer(mds, optionalConfig);
         default:
+            // NativePlayer 基本上调用都是 原生的 video 与 audio
+            // 只是增加了一些质量统计信息
             return new NativePlayer(mds, optionalConfig);
     }
 }

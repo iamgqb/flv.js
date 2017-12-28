@@ -41,10 +41,12 @@ class FlvPlayer {
         }
 
         if (mediaDataSource.type.toLowerCase() !== 'flv') {
+            // 只播放flv格式，不一定后缀是flv
             throw new InvalidArgumentException('FlvPlayer requires an flv MediaDataSource input!');
         }
 
         if (mediaDataSource.isLive === true) {
+            // 直播标记
             this._config.isLive = true;
         }
 
@@ -79,6 +81,18 @@ class FlvPlayer {
         this._mediaInfo = null;
         this._statisticsInfo = null;
 
+        /**
+         * IDR
+         * 什么是IDR？Instantaneous Decoder Refresh;
+         * https://zh.wikipedia.org/wiki/%E8%A6%96%E8%A8%8A%E5%A3%93%E7%B8%AE%E5%9C%96%E5%83%8F%E9%A1%9E%E5%9E%8B
+         * https://stackoverflow.com/questions/22626021/idr-and-non-idr-difference
+         * 帧组：GOP，几帧图像分为一组
+         * https://en.wikipedia.org/wiki/Group_of_pictures
+         * H264 预测编码(P帧B帧)可以夸GOP？
+         * I帧、P帧、B帧；I帧独立解码可播放，P帧依赖之前的帧，B帧依赖前后的帧
+         * 
+         * // ... 所以IDR存在的意义是啥，为什么不是所有的I都是IDR
+         */
         let chromeNeedIDRFix = (Browser.chrome &&
                                (Browser.version.major < 50 ||
                                (Browser.version.major === 50 && Browser.version.build < 2661)));
