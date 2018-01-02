@@ -88,10 +88,9 @@ class FlvPlayer {
          * https://stackoverflow.com/questions/22626021/idr-and-non-idr-difference
          * 帧组：GOP，几帧图像分为一组
          * https://en.wikipedia.org/wiki/Group_of_pictures
-         * H264 预测编码(P帧B帧)可以夸GOP？
          * I帧、P帧、B帧；I帧独立解码可播放，P帧依赖之前的帧，B帧依赖前后的帧
          * 
-         * // ... 所以IDR存在的意义是啥，为什么不是所有的I都是IDR
+         * 一个GOP可以包含多个 I 帧，必定从IDR开始
          */
         let chromeNeedIDRFix = (Browser.chrome &&
                                (Browser.version.major < 50 ||
@@ -143,15 +142,22 @@ class FlvPlayer {
     }
 
     attachMediaElement(mediaElement) {
+        /**
+         * mediaElement 为普通 Video 对象
+         * video 的各种时间 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
+         */
         this._mediaElement = mediaElement;
-        mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata);
-        mediaElement.addEventListener('seeking', this.e.onvSeeking);
-        mediaElement.addEventListener('canplay', this.e.onvCanPlay);
-        mediaElement.addEventListener('stalled', this.e.onvStalled);
-        mediaElement.addEventListener('progress', this.e.onvProgress);
+        mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata); // 元媒体数据
+        mediaElement.addEventListener('seeking', this.e.onvSeeking); // seeking操作开始触发, 拖拉进度条
+        mediaElement.addEventListener('canplay', this.e.onvCanPlay); // 已有足够的媒体数据可以开始播放
+        mediaElement.addEventListener('stalled', this.e.onvStalled); // 尝试获取媒体数据，却数据不可用
+        mediaElement.addEventListener('progress', this.e.onvProgress); // 一个周期性的事件，通知媒体数据的下载情况
 
         this._msectl = new MSEController(this._config);
 
+        /**
+         * 一些自定义事件
+         */
         this._msectl.on(MSEEvents.UPDATE_END, this._onmseUpdateEnd.bind(this));
         this._msectl.on(MSEEvents.BUFFER_FULL, this._onmseBufferFull.bind(this));
         this._msectl.on(MSEEvents.SOURCE_OPEN, () => {
@@ -214,6 +220,10 @@ class FlvPlayer {
             return;
         }
 
+        /**
+         * 媒体状态
+         * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/readyState
+         */
         if (this._mediaElement.readyState > 0) {
             this._requestSetTime = true;
             // IE11 may throw InvalidStateError if readyState === 0
@@ -447,6 +457,12 @@ class FlvPlayer {
         }
     }
 
+    /**
+     * 判断跳跃的时间点是否在 buffer 中
+     * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/buffered
+     * HTMLMediaElement.buffered 返回一个 TimeRanges
+     * https://developer.mozilla.org/en-US/docs/Web/API/TimeRanges
+     */
     _isTimepointBuffered(seconds) {
         let buffered = this._mediaElement.buffered;
 
@@ -460,6 +476,9 @@ class FlvPlayer {
         return false;
     }
 
+    /**
+     * seconds 秒
+     */
     _internalSeek(seconds) {
         let directSeek = this._isTimepointBuffered(seconds);
 
@@ -467,8 +486,15 @@ class FlvPlayer {
         let directSeekBeginTime = 0;
 
         if (seconds < 1.0 && this._mediaElement.buffered.length > 0) {
+            /**
+             * 跳跃的时间点在0-1秒间，且存在缓存媒体数据
+             */
             let videoBeginTime = this._mediaElement.buffered.start(0);
             if ((videoBeginTime < 1.0 && seconds < videoBeginTime) || Browser.safari) {
+                /**
+                 * 第一份缓存的媒体数据开始点在 0-1秒，且跳跃的点比它还小
+                 * 定位到这份缓存的开始点
+                 */
                 directSeekBegin = true;
                 // also workaround for Safari: Seek to 0 may cause video stuck, use 0.1 to avoid
                 directSeekBeginTime = Browser.safari ? 0.1 : videoBeginTime;
@@ -479,12 +505,15 @@ class FlvPlayer {
             this._requestSetTime = true;
             this._mediaElement.currentTime = directSeekBeginTime;
         }  else if (directSeek) {  // buffered position
+            // 该段视频已经缓存了，在缓存中进行时间点跳跃
             if (!this._alwaysSeekKeyframe) {
+                // 不用搜寻 IDR ，直接跳跃
                 this._requestSetTime = true;
                 this._mediaElement.currentTime = seconds;
             } else {
-                let idr = this._msectl.getNearestKeyframe(Math.floor(seconds * 1000));
+                let idr = this._msectl.getNearestKeyframe(Math.floor(seconds * 1000)); // 毫秒
                 this._requestSetTime = true;
+                // 找到 idr 就跳到 idr 没有就直接跳
                 if (idr != null) {
                     this._mediaElement.currentTime = idr.dts / 1000;
                 } else {
@@ -495,6 +524,7 @@ class FlvPlayer {
                 this._checkProgressAndResume();
             }
         } else {
+            // 不在缓存中
             if (this._progressChecker != null) {
                 window.clearInterval(this._progressChecker);
                 this._progressChecker = null;

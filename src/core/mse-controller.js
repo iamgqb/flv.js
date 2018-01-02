@@ -106,6 +106,8 @@ class MSEController {
         ms.addEventListener('sourceclose', this.e.onSourceClose);
 
         this._mediaElement = mediaElement;
+        // 创建一个新的URL对象，填到video的src中
+        // https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
         this._mediaSourceObjectURL = window.URL.createObjectURL(this._mediaSource);
         mediaElement.src = this._mediaSourceObjectURL;
     }

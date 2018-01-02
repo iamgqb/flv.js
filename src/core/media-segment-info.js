@@ -78,6 +78,9 @@ export class IDRSampleList {
         Array.prototype.push.apply(list, syncPoints);
     }
 
+    /**
+     * dts 毫秒
+     */
     getLastSyncPointBeforeDts(dts) {
         if (this._list.length == 0) {
             return null;
