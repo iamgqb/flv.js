@@ -42,7 +42,8 @@ function ReadBig32(array, index) {
             (array[index + 3]));
 }
 
-
+// FLV SPEC
+// https://wwwimages2.adobe.com/content/dam/acom/en/devnet/flv/video_file_format_spec_v10.pdf
 class FLVDemuxer {
 
     constructor(probeData, config) {
@@ -127,6 +128,7 @@ class FLVDemuxer {
     }
 
     static probe(buffer) {
+        // [0x46, 0x4C, 0x56, 0x01, [0,0,0,0,0,?,0,?]]
         let data = new Uint8Array(buffer);
         let mismatch = {match: false};
 

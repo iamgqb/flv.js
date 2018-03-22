@@ -144,7 +144,7 @@ class FlvPlayer {
     attachMediaElement(mediaElement) {
         /**
          * mediaElement 为普通 Video 对象
-         * video 的各种时间 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
+         * video 的各种事件 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events
          */
         this._mediaElement = mediaElement;
         mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata); // 元媒体数据
@@ -175,9 +175,11 @@ class FlvPlayer {
             );
         });
 
+        // 生成 mediaSource 并挂载到 viedo 上
         this._msectl.attachMediaElement(mediaElement);
 
         if (this._pendingSeekTime != null) {
+            // 设定初始视频的时间
             try {
                 mediaElement.currentTime = this._pendingSeekTime;
                 this._pendingSeekTime = null;

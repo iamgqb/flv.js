@@ -159,6 +159,7 @@ class FetchStreamLoader extends BaseLoader {
     }
 
     _pump(reader) {  // ReadableStreamReader
+        // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
         return reader.read().then((result) => {
             if (result.done) {
                 this._status = LoaderStatus.kComplete;

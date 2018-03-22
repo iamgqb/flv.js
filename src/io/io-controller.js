@@ -217,18 +217,20 @@ class IOController {
     }
 
     /**
-     * 根据seekType设置seekHandler
+     * 根据 seekType 设置不同时间段的内容获取方式
      * 设置url 或 添加 Range 属性
      */
     _selectSeekHandler() {
         let config = this._config;
 
         if (config.seekType === 'range') {
+            // 在 header 中添加 Range 属性
             this._seekHandler = new RangeSeekHandler(this._config.rangeLoadZeroStart);
         } else if (config.seekType === 'param') {
             let paramStart = config.seekParamStart || 'bstart';
             let paramEnd = config.seekParamEnd || 'bend';
 
+            // 在 url 中添加 star 与 end 参数；参数名需自定义
             this._seekHandler = new ParamSeekHandler(paramStart, paramEnd);
         } else if (config.seekType === 'custom') {
             if (typeof config.customSeekHandler !== 'function') {

@@ -96,6 +96,10 @@ class MSEController {
         this._emitter.removeListener(event, listener);
     }
 
+    /**
+     * 生成 mediaSource 并生成 btob 链接，赋予 video.src
+     * @param {HTMLElement} mediaElement video元素对象
+     */
     attachMediaElement(mediaElement) {
         if (this._mediaSource) {
             throw new IllegalStateException('MediaSource has been attached to an HTMLMediaElement!');

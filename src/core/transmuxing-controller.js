@@ -124,7 +124,7 @@ class TransmuxingController {
 
     _loadSegment(segmentIndex, optionalFrom) {
         this._currentSegmentIndex = segmentIndex;
-        let dataSource = this._mediaDataSource.segments[segmentIndex];
+        let dataSource = this._mediaDataSource.segments[segmentIndex]; // 取了当前片段，不过我们一般只分了一段，参看 constructor
 
         let ioctl = this._ioctl = new IOController(dataSource, this._config, segmentIndex);
         ioctl.onError = this._onIOException.bind(this);
